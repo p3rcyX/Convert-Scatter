@@ -3,421 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ekstraksi Nomor Transaksi</title>
+    <title>Ekstrak Nomor Transaksi</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f5f5f5;
         }
-        
         .container {
             background: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
-        .form-group {
-            margin-bottom: 15px;
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
         }
-        
+        .form-group {
+            margin-bottom: 20px;
+        }
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: bold;
             color: #333;
         }
-        
-        input[type="text"], input[type="url"] {
+        input[type="url"] {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
+            padding: 12px;
+            border: 2px solid #ddd;
             border-radius: 5px;
-            font-size: 14px;
+            font-size: 16px;
         }
-        
         .btn {
             background: #007bff;
             color: white;
-            padding: 12px 30px;
+            padding: 15px 30px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
-            margin: 10px 0;
+            width: 100%;
         }
-        
         .btn:hover {
             background: #0056b3;
         }
-        
-        .btn-copy {
-            background: #28a745;
-        }
-        
-        .btn-copy:hover {
-            background: #218838;
-        }
-        
-        .image-preview {
-            display: flex;
-            gap: 20px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-        
-        .image-box {
-            flex: 1;
-            min-width: 300px;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
-        }
-        
-        .image-box img {
-            max-width: 100%;
-            max-height: 300px;
-            border: 1px solid #eee;
-        }
-        
-        .results {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            border: 1px solid #dee2e6;
-        }
-        
-        .table-results {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        
-        .table-results th, .table-results td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-        
-        .table-results th {
-            background-color: #007bff;
-            color: white;
-        }
-        
-        .table-results tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        
         .loading {
             display: none;
             text-align: center;
             padding: 20px;
             color: #007bff;
         }
-        
-        .status {
-            padding: 10px;
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+        .transaction-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .transaction-item {
+            background: white;
+            padding: 15px;
             margin: 10px 0;
             border-radius: 5px;
-            text-align: center;
+            border: 1px solid #ddd;
+            font-family: monospace;
+            font-size: 16px;
         }
-        
-        .status.success {
+        .debug {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            display: none;
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        .success {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
-        
-        .status.error {
+        .error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
-        }
-        
-        .debug {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
-            border: 1px solid #dee2e6;
-            display: none;
-        }
-        
-        .debug pre {
-            white-space: pre-wrap;
-            font-size: 12px;
-            max-height: 200px;
-            overflow-y: auto;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Ekstraksi Nomor Transaksi</h1>
+        <h1>🔍 Ekstrak Nomor Transaksi</h1>
         
-        <div class="form-section">
-            <h2>Form Input Data</h2>
-            <div class="form-group">
-                <label for="userId">User ID</label>
-                <input type="text" id="userId" placeholder="Masukkan User ID">
-            </div>
-            
-            <div class="form-group">
-                <label for="ssScatter">SS SCATTER (URL Gambar)</label>
-                <input type="url" id="ssScatter" placeholder="https://example.com/scatter.jpg">
-            </div>
-            
-            <div class="form-group">
-                <label for="ssHistory">SS HISTORY (URL Gambar)</label>
-                <input type="url" id="ssHistory" placeholder="https://example.com/history.jpg">
-            </div>
-            
-            <div class="form-group">
-                <label for="ssKemenangan">SS KEMENANGAN (URL Gambar)</label>
-                <input type="url" id="ssKemenangan" placeholder="https://example.com/kemenangan.jpg">
-            </div>
-            
-            <div class="form-group">
-                <label for="nomorRekening">Nomor Rekening</label>
-                <input type="text" id="nomorRekening" placeholder="Masukkan Nomor Rekening">
-            </div>
-            
-            <div class="form-group">
-                <label for="namaRekening">Nama Rekening</label>
-                <input type="text" id="namaRekening" placeholder="Masukkan Nama Rekening">
-            </div>
-            
-            <button class="btn" onclick="processData()">Proses</button>
+        <div class="form-group">
+            <label for="ssHistory">SS HISTORY (URL Gambar):</label>
+            <input type="url" id="ssHistory" placeholder="https://example.com/history.jpg">
         </div>
+        
+        <button class="btn" onclick="extractTransactions()">🚀 Ekstrak Nomor Transaksi</button>
 
         <div class="loading" id="loading">
-            <p>Sedang memproses gambar dan mengekstrak nomor transaksi...</p>
+            <p>🔄 Sedang memproses gambar...</p>
             <div id="progress"></div>
         </div>
 
-        <div class="status" id="status" style="display: none;"></div>
+        <div class="status" id="status"></div>
 
-        <div class="debug" id="debug" style="display: none;">
-            <h4>📊 Debug Information:</h4>
+        <div class="debug" id="debug">
+            <h3>📊 Debug Info:</h3>
             <pre id="debugContent"></pre>
         </div>
 
-        <div class="image-preview" id="imagePreview" style="display: none;">
-            <div class="image-box">
-                <h3>SS SCATTER</h3>
-                <img id="previewScatter" alt="SS Scatter">
-            </div>
-            <div class="image-box">
-                <h3>SS HISTORY</h3>
-                <img id="previewHistory" alt="SS History">
-            </div>
-            <div class="image-box">
-                <h3>SS KEMENANGAN</h3>
-                <img id="previewKemenangan" alt="SS Kemenangan">
-            </div>
-        </div>
-
-        <div class="results" id="results" style="display: none;">
-            <h2>Hasil Ekstraksi</h2>
-            
-            <table class="table-results">
-                <thead>
-                    <tr>
-                        <th>User ID</th>
-                        <th>SS SCATTER</th>
-                        <th>SS HISTORY</th>
-                        <th>SS KEMENANGAN</th>
-                        <th>Nomor Rekening</th>
-                        <th>Nama Rekening</th>
-                        <th>Nomor Transaksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td id="resultUserId"></td>
-                        <td id="resultScatter"></td>
-                        <td id="resultHistory"></td>
-                        <td id="resultKemenangan"></td>
-                        <td id="resultNomorRekening"></td>
-                        <td id="resultNamaRekening"></td>
-                        <td id="resultNomorTransaksi"></td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="copy-section">
-                <button class="btn btn-copy" onclick="copyAllData()">Copy All Data</button>
-                <p id="copyStatus"></p>
-            </div>
+        <div class="results" id="results">
+            <h2>📋 Daftar Nomor Transaksi Ditemukan:</h2>
+            <div class="transaction-list" id="transactionList"></div>
         </div>
     </div>
 
     <script>
-        async function processData() {
+        async function extractTransactions() {
+            // Reset
             document.getElementById('results').style.display = 'none';
             document.getElementById('status').style.display = 'none';
             document.getElementById('debug').style.display = 'none';
+            document.getElementById('transactionList').innerHTML = '';
             
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('progress').innerHTML = 'Memulai proses...';
-
-            try {
-                const userId = document.getElementById('userId').value;
-                const ssScatter = document.getElementById('ssScatter').value;
-                const ssHistory = document.getElementById('ssHistory').value;
-                const ssKemenangan = document.getElementById('ssKemenangan').value;
-                const nomorRekening = document.getElementById('nomorRekening').value;
-                const namaRekening = document.getElementById('namaRekening').value;
-
-                if (!userId || !ssHistory) {
-                    showStatus('User ID dan SS HISTORY harus diisi!', 'error');
-                    document.getElementById('loading').style.display = 'none';
-                    return;
-                }
-
-                document.getElementById('previewScatter').src = ssScatter;
-                document.getElementById('previewHistory').src = ssHistory;
-                document.getElementById('previewKemenangan').src = ssKemenangan;
-                document.getElementById('imagePreview').style.display = 'flex';
-
-                document.getElementById('progress').innerHTML = 'Memproses SS HISTORY dengan OCR...';
-                
-                const transactionNumber = await extractTransactionNumber(ssHistory);
-                
-                document.getElementById('resultUserId').textContent = userId;
-                document.getElementById('resultScatter').textContent = ssScatter;
-                document.getElementById('resultHistory').textContent = ssHistory;
-                document.getElementById('resultKemenangan').textContent = ssKemenangan;
-                document.getElementById('resultNomorRekening').textContent = nomorRekening;
-                document.getElementById('resultNamaRekening').textContent = namaRekening;
-                document.getElementById('resultNomorTransaksi').textContent = transactionNumber;
-
-                document.getElementById('results').style.display = 'block';
-                document.getElementById('loading').style.display = 'none';
-                
-                showStatus('✅ Data berhasil diproses! Nomor transaksi: ' + transactionNumber, 'success');
-
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('loading').style.display = 'none';
-                showStatus('❌ Terjadi kesalahan: ' + error.message, 'error');
+            const imageUrl = document.getElementById('ssHistory').value;
+            
+            if (!imageUrl) {
+                showStatus('❌ Masukkan URL gambar SS HISTORY!', 'error');
+                return;
             }
-        }
 
-        async function extractTransactionNumber(imageUrl) {
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('progress').innerHTML = 'Memulai...';
+
             try {
                 document.getElementById('progress').innerHTML = 'Menginisialisasi OCR...';
                 
                 const worker = await Tesseract.createWorker('eng', 1, {
                     logger: m => {
                         if (m.status === 'recognizing text') {
-                            document.getElementById('progress').innerHTML = `Memproses OCR: ${Math.round(m.progress * 100)}%`;
+                            document.getElementById('progress').innerHTML = `Memproses gambar: ${Math.round(m.progress * 100)}%`;
                         }
                     }
                 });
 
-                document.getElementById('progress').innerHTML = 'Mengenal teks dari gambar...';
+                document.getElementById('progress').innerHTML = 'Membaca teks dari gambar...';
                 
                 const { data: { text } } = await worker.recognize(imageUrl);
                 await worker.terminate();
 
-                // Tampilkan debug info
-                document.getElementById('debugContent').textContent = '📝 HASIL OCR:\n' + text;
+                // Show debug info
+                document.getElementById('debugContent').textContent = text;
                 document.getElementById('debug').style.display = 'block';
 
-                document.getElementById('progress').innerHTML = 'Mencari nomor transaksi dengan tanda +...';
+                document.getElementById('progress').innerHTML = 'Mencari nomor transaksi...';
 
-                const transactionNumber = findTransactionNumberWithPlus(text);
+                // Cari semua nomor transaksi
+                const transactions = findAllTransactionNumbers(text);
                 
-                if (!transactionNumber) {
-                    throw new Error('Tidak ditemukan nomor transaksi dengan tanda +');
+                document.getElementById('loading').style.display = 'none';
+
+                if (transactions.length === 0) {
+                    showStatus('❌ Tidak ditemukan nomor transaksi dalam gambar', 'error');
+                    return;
                 }
 
-                return transactionNumber;
+                // Tampilkan hasil
+                displayTransactions(transactions);
+                showStatus(`✅ Ditemukan ${transactions.length} nomor transaksi`, 'success');
 
             } catch (error) {
-                throw new Error('Gagal mengekstrak nomor transaksi: ' + error.message);
+                document.getElementById('loading').style.display = 'none';
+                showStatus('❌ Error: ' + error.message, 'error');
             }
         }
 
-        function findTransactionNumberWithPlus(text) {
-            console.log('=== MULAI PENCARIAN NOMOR TRANSAKSI ===');
-            console.log('Teks dari OCR:', text);
+        function findAllTransactionNumbers(text) {
+            console.log('=== MENCARI NOMOR TRANSAKSI ===');
+            console.log('Teks OCR:', text);
             
-            // 1. CEK APAKAH ADA TANDA +
-            if (!text.includes('+')) {
-                console.log('❌ Tanda + tidak ditemukan dalam teks OCR');
-                return null;
-            }
-            
-            console.log('✅ Tanda + ditemukan!');
-            
-            // 2. CARI SEMUA ANGKA DALAM TEKS
+            // Cari SEMUA angka dalam teks
             const allNumbers = text.match(/\d+/g) || [];
-            console.log('Semua angka yang ditemukan:', allNumbers);
+            console.log('Semua angka ditemukan:', allNumbers);
             
             if (allNumbers.length === 0) {
-                console.log('❌ Tidak ada angka yang ditemukan');
-                return null;
+                return [];
             }
             
-            // 3. PILIH ANGKA TERPANGSING (paling mungkin nomor transaksi)
-            const longestNumber = allNumbers.reduce((longest, current) => {
-                return current.length > longest.length ? current : longest;
+            // Filter: hanya angka dengan panjang tertentu (8-20 digit) yang kemungkinan nomor transaksi
+            const transactionNumbers = allNumbers.filter(num => {
+                const length = num.length;
+                return length >= 8 && length <= 20;
             });
             
-            console.log('✅ Menggunakan angka terpanjang:', longestNumber);
+            // Hapus duplikat
+            const uniqueTransactions = [...new Set(transactionNumbers)];
             
-            // 4. TAMPILKAN INFO DEBUG
-            const debugInfo = `
-🔍 HASIL PENCARIAN:
-- Tanda + ditemukan: ✅
-- Total angka ditemukan: ${allNumbers.length}
-- Angka terpanjang: ${longestNumber}
-- Semua angka: ${allNumbers.join(', ')}
-            `.trim();
-            
-            document.getElementById('debugContent').textContent += '\n\n' + debugInfo;
-            
-            return longestNumber;
+            console.log('Nomor transaksi filtered:', uniqueTransactions);
+            return uniqueTransactions;
         }
 
-        function copyAllData() {
-            const data = {
-                userId: document.getElementById('resultUserId').textContent,
-                ssScatter: document.getElementById('resultScatter').textContent,
-                ssHistory: document.getElementById('resultHistory').textContent,
-                ssKemenangan: document.getElementById('resultKemenangan').textContent,
-                nomorRekening: document.getElementById('resultNomorRekening').textContent,
-                namaRekening: document.getElementById('resultNamaRekening').textContent,
-                nomorTransaksi: document.getElementById('resultNomorTransaksi').textContent
-            };
+        function displayTransactions(transactions) {
+            const container = document.getElementById('transactionList');
+            
+            transactions.forEach((transaction, index) => {
+                const div = document.createElement('div');
+                div.className = 'transaction-item';
+                div.innerHTML = `
+                    <strong>#${index + 1}</strong> 
+                    <span style="margin-left: 10px; font-size: 18px;">${transaction}</span>
+                    <button onclick="copyText('${transaction}')" style="float: right; background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+                        📋 Copy
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+            
+            document.getElementById('results').style.display = 'block';
+        }
 
-            const formattedData = 
-                `User ID:\t${data.userId}\n` +
-                `SS SCATTER:\t${data.ssScatter}\n` +
-                `SS HISTORY:\t${data.ssHistory}\n` +
-                `SS KEMENANGAN:\t${data.ssKemenangan}\n` +
-                `Nomor Rekening:\t${data.nomorRekening}\n` +
-                `Nama Rekening:\t${data.namaRekening}\n` +
-                `Nomor Transaksi:\t${data.nomorTransaksi}`;
-
-            navigator.clipboard.writeText(formattedData).then(() => {
-                document.getElementById('copyStatus').textContent = '✅ Data berhasil disalin!';
-                document.getElementById('copyStatus').style.color = 'green';
-                
-                setTimeout(() => {
-                    document.getElementById('copyStatus').textContent = '';
-                }, 3000);
-            }).catch(err => {
-                document.getElementById('copyStatus').textContent = '❌ Gagal menyalin data';
-                document.getElementById('copyStatus').style.color = 'red';
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Nomor transaksi disalin: ' + text);
             });
         }
 
@@ -428,9 +251,10 @@
             statusEl.style.display = 'block';
         }
 
-        document.addEventListener('keypress', function(event) {
+        // Enter key support
+        document.getElementById('ssHistory').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
-                processData();
+                extractTransactions();
             }
         });
     </script>

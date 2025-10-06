@@ -141,14 +141,19 @@
         }
         
         .debug {
-            background: #fff3cd;
-            padding: 10px;
+            background: #f8f9fa;
+            padding: 15px;
             border-radius: 5px;
             margin: 10px 0;
+            border: 1px solid #dee2e6;
+            display: none;
+        }
+        
+        .debug pre {
+            white-space: pre-wrap;
             font-size: 12px;
             max-height: 200px;
             overflow-y: auto;
-            display: none;
         }
     </style>
 </head>
@@ -198,8 +203,8 @@
 
         <div class="status" id="status" style="display: none;"></div>
 
-        <div class="debug" id="debug">
-            <strong>Debug Info:</strong>
+        <div class="debug" id="debug" style="display: none;">
+            <h4>📊 Debug Information:</h4>
             <pre id="debugContent"></pre>
         </div>
 
@@ -323,15 +328,15 @@
                 await worker.terminate();
 
                 // Tampilkan debug info
-                document.getElementById('debugContent').textContent = text;
+                document.getElementById('debugContent').textContent = '📝 HASIL OCR:\n' + text;
                 document.getElementById('debug').style.display = 'block';
 
-                document.getElementById('progress').innerHTML = 'Mencari nomor transaksi...';
+                document.getElementById('progress').innerHTML = 'Mencari nomor transaksi dengan tanda +...';
 
                 const transactionNumber = findTransactionNumberWithPlus(text);
                 
                 if (!transactionNumber) {
-                    throw new Error('Tidak ditemukan nomor transaksi. Lihat bagian Debug Info untuk detail.');
+                    throw new Error('Tidak ditemukan nomor transaksi dengan tanda +');
                 }
 
                 return transactionNumber;
@@ -342,68 +347,45 @@
         }
 
         function findTransactionNumberWithPlus(text) {
-            console.log('OCR Text:', text);
+            console.log('=== MULAI PENCARIAN NOMOR TRANSAKSI ===');
+            console.log('Teks dari OCR:', text);
             
-            // 1. PRIORITY: Cari yang ada tanda +
-            if (text.includes('+')) {
-                const plusLines = text.split('\n').filter(line => line.includes('+'));
-                console.log('Lines dengan +:', plusLines);
-                
-                for (const line of plusLines) {
-                    // Ambil semua angka di sekitar line yang ada +
-                    const lines = text.split('\n');
-                    const lineIndex = lines.findIndex(l => l === line);
-                    
-                    let nearbyNumbers = [];
-                    // Ambil 2 baris sebelum dan setelah
-                    for (let i = Math.max(0, lineIndex - 2); i <= Math.min(lines.length - 1, lineIndex + 2); i++) {
-                        const numbers = lines[i].match(/\d+/g);
-                        if (numbers) {
-                            nearbyNumbers = nearbyNumbers.concat(numbers);
-                        }
-                    }
-                    
-                    if (nearbyNumbers.length >= 2) {
-                        const result = nearbyNumbers.join('');
-                        console.log('Found with + pattern:', result);
-                        return result;
-                    }
-                }
+            // 1. CEK APAKAH ADA TANDA +
+            if (!text.includes('+')) {
+                console.log('❌ Tanda + tidak ditemukan dalam teks OCR');
+                return null;
             }
             
-            // 2. Cari angka terpanjang (fallback)
+            console.log('✅ Tanda + ditemukan!');
+            
+            // 2. CARI SEMUA ANGKA DALAM TEKS
             const allNumbers = text.match(/\d+/g) || [];
-            if (allNumbers.length > 0) {
-                // Urutkan dari yang terpanjang
-                const sortedNumbers = allNumbers.sort((a, b) => b.length - a.length);
-                const longest = sortedNumbers[0];
-                
-                // Hanya return yang panjangnya >= 8 digit (kemungkinan nomor transaksi)
-                if (longest.length >= 8) {
-                    console.log('Found longest number:', longest);
-                    return longest;
-                }
+            console.log('Semua angka yang ditemukan:', allNumbers);
+            
+            if (allNumbers.length === 0) {
+                console.log('❌ Tidak ada angka yang ditemukan');
+                return null;
             }
             
-            // 3. Cari pattern khusus: angka yang muncul di context transaksi
-            const lines = text.split('\n');
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                // Jika line mengandung pattern waktu seperti 15:11:39
-                if (line.match(/\d{2}:\d{2}:\d{2}/)) {
-                    // Cari angka di line berikutnya yang mungkin nomor transaksi
-                    if (i + 1 < lines.length) {
-                        const numbers = lines[i + 1].match(/\d{8,20}/g);
-                        if (numbers && numbers.length > 0) {
-                            console.log('Found with time pattern:', numbers[0]);
-                            return numbers[0];
-                        }
-                    }
-                }
-            }
+            // 3. PILIH ANGKA TERPANGSING (paling mungkin nomor transaksi)
+            const longestNumber = allNumbers.reduce((longest, current) => {
+                return current.length > longest.length ? current : longest;
+            });
             
-            console.log('No transaction number found');
-            return null;
+            console.log('✅ Menggunakan angka terpanjang:', longestNumber);
+            
+            // 4. TAMPILKAN INFO DEBUG
+            const debugInfo = `
+🔍 HASIL PENCARIAN:
+- Tanda + ditemukan: ✅
+- Total angka ditemukan: ${allNumbers.length}
+- Angka terpanjang: ${longestNumber}
+- Semua angka: ${allNumbers.join(', ')}
+            `.trim();
+            
+            document.getElementById('debugContent').textContent += '\n\n' + debugInfo;
+            
+            return longestNumber;
         }
 
         function copyAllData() {

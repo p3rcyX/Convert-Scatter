@@ -6,127 +6,33 @@
     <title>Ekstraksi Nomor Transaksi</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <style>
-        /* CSS sama persis dengan kode sebelumnya */
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-        input[type="text"], input[type="url"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        .btn {
-            background: #007bff;
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 10px 0;
-        }
-        .btn:hover {
-            background: #0056b3;
-        }
-        .btn-copy {
-            background: #28a745;
-        }
-        .btn-copy:hover {
-            background: #218838;
-        }
-        .image-preview {
-            display: flex;
-            gap: 20px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-        .image-box {
-            flex: 1;
-            min-width: 300px;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
-        }
-        .image-box img {
-            max-width: 100%;
-            max-height: 300px;
-            border: 1px solid #eee;
-        }
-        .results {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            border: 1px solid #dee2e6;
-        }
-        .table-results {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .table-results th, .table-results td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-        .table-results th {
-            background-color: #007bff;
-            color: white;
-        }
-        .table-results tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #007bff;
-        }
-        .status {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            text-align: center;
-        }
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background-color: #f5f5f5; }
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input[type="text"], input[type="url"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        .btn { background: #007bff; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px 0; }
+        .btn:hover { background: #0056b3; }
+        .btn-copy { background: #28a745; }
+        .btn-copy:hover { background: #218838; }
+        .image-preview { display: flex; gap: 20px; margin: 20px 0; flex-wrap: wrap; }
+        .image-box { flex: 1; min-width: 300px; border: 1px solid #ddd; padding: 10px; border-radius: 5px; text-align: center; }
+        .image-box img { max-width: 100%; max-height: 300px; border: 1px solid #eee; }
+        .results { margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6; }
+        .table-results { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .table-results th, .table-results td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        .table-results th { background-color: #007bff; color: white; }
+        .table-results tr:nth-child(even) { background-color: #f2f2f2; }
+        .loading { display: none; text-align: center; padding: 20px; color: #007bff; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; text-align: center; }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Ekstraksi Nomor Transaksi</h1>
         
-        <!-- Form Input -->
         <div class="form-section">
             <h2>Form Input Data</h2>
             <div class="form-group">
@@ -162,16 +68,13 @@
             <button class="btn" onclick="processData()">Proses</button>
         </div>
 
-        <!-- Loading Indicator -->
         <div class="loading" id="loading">
             <p>Sedang memproses gambar dan mengekstrak nomor transaksi...</p>
             <div id="progress"></div>
         </div>
 
-        <!-- Status Message -->
         <div class="status" id="status" style="display: none;"></div>
 
-        <!-- Preview Gambar -->
         <div class="image-preview" id="imagePreview" style="display: none;">
             <div class="image-box">
                 <h3>SS SCATTER</h3>
@@ -187,11 +90,9 @@
             </div>
         </div>
 
-        <!-- Hasil Ekstraksi -->
         <div class="results" id="results" style="display: none;">
             <h2>Hasil Ekstraksi</h2>
             
-            <!-- Tabel Results -->
             <table class="table-results">
                 <thead>
                     <tr>
@@ -217,7 +118,6 @@
                 </tbody>
             </table>
 
-            <!-- Copy All Button -->
             <div class="copy-section">
                 <button class="btn btn-copy" onclick="copyAllData()">Copy All Data</button>
                 <p id="copyStatus"></p>
@@ -227,16 +127,13 @@
 
     <script>
         async function processData() {
-            // Reset previous results
             document.getElementById('results').style.display = 'none';
             document.getElementById('status').style.display = 'none';
             
-            // Show loading
             document.getElementById('loading').style.display = 'block';
             document.getElementById('progress').innerHTML = 'Memulai proses...';
 
             try {
-                // Get form values
                 const userId = document.getElementById('userId').value;
                 const ssScatter = document.getElementById('ssScatter').value;
                 const ssHistory = document.getElementById('ssHistory').value;
@@ -244,27 +141,21 @@
                 const nomorRekening = document.getElementById('nomorRekening').value;
                 const namaRekening = document.getElementById('namaRekening').value;
 
-                // Validate required fields
                 if (!userId || !ssHistory) {
                     showStatus('User ID dan SS HISTORY harus diisi!', 'error');
                     document.getElementById('loading').style.display = 'none';
                     return;
                 }
 
-                // Show image previews
                 document.getElementById('previewScatter').src = ssScatter;
                 document.getElementById('previewHistory').src = ssHistory;
                 document.getElementById('previewKemenangan').src = ssKemenangan;
                 document.getElementById('imagePreview').style.display = 'flex';
 
-                // Process SS HISTORY with OCR
                 document.getElementById('progress').innerHTML = 'Memproses SS HISTORY dengan OCR...';
                 
                 const transactionNumber = await extractTransactionNumber(ssHistory);
                 
-                document.getElementById('progress').innerHTML = 'Menyiapkan hasil...';
-
-                // Display results
                 document.getElementById('resultUserId').textContent = userId;
                 document.getElementById('resultScatter').textContent = ssScatter;
                 document.getElementById('resultHistory').textContent = ssHistory;
@@ -273,7 +164,6 @@
                 document.getElementById('resultNamaRekening').textContent = namaRekening;
                 document.getElementById('resultNomorTransaksi').textContent = transactionNumber;
 
-                // Show results section
                 document.getElementById('results').style.display = 'block';
                 document.getElementById('loading').style.display = 'none';
                 
@@ -305,7 +195,6 @@
 
                 document.getElementById('progress').innerHTML = 'Mencari nomor transaksi dengan tanda +...';
 
-                // Cari nomor transaksi yang memiliki tanda +
                 const transactionNumber = findTransactionNumberWithPlus(text);
                 
                 if (!transactionNumber) {
@@ -325,12 +214,7 @@
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
                 
-                // Cari baris yang mengandung tanda +
                 if (line.includes('+')) {
-                    // Cari angka-angka di baris sebelumnya yang mungkin merupakan nomor transaksi
-                    // Format: 1975 11879 + 6997800448 = 1975118796997800448
-                    
-                    // Ambil angka dari baris sebelumnya (nomor transaksi pertama)
                     let prevNumbers = [];
                     for (let j = Math.max(0, i - 2); j < i; j++) {
                         const numbers = lines[j].match(/\d+/g);
@@ -339,15 +223,10 @@
                         }
                     }
                     
-                    // Ambil angka dari baris saat ini (setelah tanda +)
                     const currentNumbers = line.match(/\d+/g) || [];
-                    
-                    // Gabungkan semua angka yang ditemukan
                     const allNumbers = prevNumbers.concat(currentNumbers);
                     
                     if (allNumbers.length >= 2) {
-                        // Gabungkan angka-angka menjadi satu string panjang
-                        // Contoh: ['1975', '11879', '6997800448'] -> '1975118796997800448'
                         return allNumbers.join('');
                     }
                 }
@@ -367,7 +246,6 @@
                 nomorTransaksi: document.getElementById('resultNomorTransaksi').textContent
             };
 
-            // Format data untuk copy (sejajar ke kanan dengan tab)
             const formattedData = 
                 `User ID:\t${data.userId}\n` +
                 `SS SCATTER:\t${data.ssScatter}\n` +
@@ -377,7 +255,6 @@
                 `Nama Rekening:\t${data.namaRekening}\n` +
                 `Nomor Transaksi:\t${data.nomorTransaksi}`;
 
-            // Copy to clipboard
             navigator.clipboard.writeText(formattedData).then(() => {
                 document.getElementById('copyStatus').textContent = 'Data berhasil disalin!';
                 document.getElementById('copyStatus').style.color = 'green';
@@ -398,7 +275,6 @@
             statusEl.style.display = 'block';
         }
 
-        // Handle Enter key press on form
         document.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 processData();
